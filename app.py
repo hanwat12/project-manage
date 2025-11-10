@@ -26,7 +26,7 @@ if database_url:
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 else:
     # Fallback to local MySQL for development
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://webuser:StrongPassword123@localhost/project_mgmt"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:UHOGmTfMHKqNResJErQoHTRedXMNJVmQ@postgres.railway.internal:5432/railway"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
