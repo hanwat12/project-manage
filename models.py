@@ -13,7 +13,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')  # Admin, Manager, User
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     manager_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    skills = db.Column(db.Text)  
+    skills = db.Column(db.Text)
 
     # Relationships
     managed_users = db.relationship(
@@ -76,12 +76,10 @@ class User(UserMixin, db.Model):
         if self.role == 'Admin':
             return Project.query.all()
         elif self.role == 'Manager':
-            # Managers can see projects they created or are assigned to
             created = Project.query.filter_by(created_by_id=self.id).all()
             assigned = self.projects_assigned.all()
             return list(set(created + assigned))
         else:
-            # Users can only see projects they're assigned to
             return self.projects_assigned.all()
 
     def get_accessible_tasks(self):
@@ -89,12 +87,10 @@ class User(UserMixin, db.Model):
         if self.role == 'Admin':
             return Task.query.all()
         elif self.role == 'Manager':
-            # Managers can see tasks they created or are assigned to
             created = Task.query.filter_by(created_by_id=self.id).all()
             assigned = Task.query.filter_by(assigned_to_id=self.id).all()
             return list(set(created + assigned))
         else:
-            # Users can only see tasks assigned to them
             return Task.query.filter_by(assigned_to_id=self.id).all()
 
 
@@ -113,7 +109,7 @@ class Project(db.Model):
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     # Relationships
-    task = db.relationship('Task', backref='project', lazy='dynamic', cascade='all, delete-orphan')
+    tasks = db.relationship('Task', backref='project', lazy='dynamic', cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='project', lazy='dynamic', cascade='all, delete-orphan')
     documents = db.relationship('Document', backref='project', lazy='dynamic', cascade='all, delete-orphan')
     assigned_users = db.relationship('User', secondary='project_assignments', back_populates='projects_assigned')
@@ -240,10 +236,9 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
-    # FIX: Indentation fixed here
-    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
-    # FIX: Foreign key 'user.id' changed to 'users.id'
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
 
 class Document(db.Model):
     __tablename__ = 'documents'
@@ -339,3 +334,4 @@ project_assignments = db.Table(
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True)
 )
+
