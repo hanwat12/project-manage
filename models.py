@@ -54,12 +54,6 @@ class User(UserMixin, db.Model):
         lazy='dynamic'
     )
     
-       comments = db.relationship(
-        'Comment',
-        backref='user',
-        lazy=True,
-        foreign_keys='Comment.user_id'
-    )
 
     
     permissions = db.relationship(
