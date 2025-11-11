@@ -16,8 +16,9 @@ class User(UserMixin, db.Model):
     skills = db.Column(db.Text)
 
     # Relationships
-    managed_users = db.relationship(
+ managed_users = db.relationship(
         'User',
+        primaryjoin='User.id == User.manager_id',
         backref=db.backref('manager', remote_side=[id]),
         lazy='dynamic'
     )
