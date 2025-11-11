@@ -29,7 +29,7 @@ if database_url:
 else:
     # Fallback to a GENERIC local URI. This fallback should ONLY be used for local testing 
     # where you manually substitute 'user:password@localhost:5432/my_project_db' with valid local credentials.
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://user:password@localhost:5432/my_project_db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://user:password@localhost:5432/project_management.db"
     logging.warning("DATABASE_URL not found, using generic local fallback URI.")
 
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
