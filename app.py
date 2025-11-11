@@ -30,7 +30,7 @@ else:
     # Fallback to hardcoded URI. NOTE: 'postgres.railway.internal' will ONLY work 
     # if you run this code inside another Railway service. Change to 'localhost:5432/your_db' 
     # if developing locally.
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:UHOGmTfMHKqNResJErQoHTRedXMNJVmQ@postgres.railway.internal:5432/railway"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:ccvqOzieQJYIIfSbCPKcRHTHChebsTGY@postgres.railway.internal:5432/railway"
     logging.warning("DATABASE_URL not found, using hardcoded fallback URI.")
 
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
