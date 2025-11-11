@@ -58,7 +58,7 @@ class TaskApproval(db.Model):
     __tablename__ = 'task_approval'
     
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='CASCADE'), nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False)
     # FIX: Foreign key 'user.id' changed to 'users.id'
     marked_complete_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
     approved_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
@@ -76,7 +76,7 @@ class ManualTaskDependency(db.Model):
     __tablename__ = 'manual_task_dependency'
     
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='CASCADE'), nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False)
     dependency_name = db.Column(db.String(200), nullable=False)
     dependency_description = db.Column(db.Text)
     status = db.Column(db.String(20), default='Pending')  # Pending, Completed
