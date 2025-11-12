@@ -20,7 +20,7 @@ login_manager = LoginManager()
 # Validate required environment variables
 def validate_environment():
     """Validate that all required environment variables are set"""
-    required_vars = ['SESSION_SECRET', 'DATABASE_URL']
+    required_vars = ['SESSION_SECRET']
 
     missing_vars = []
     for var in required_vars:
@@ -41,7 +41,7 @@ validate_environment()
 app = Flask(__name__)
 
 # Require SESSION_SECRET - no fallback for security
-session_secret = os.environ.get("f933657c9443fd20332290886265a2a8a5ff900b3341ad61f583fbdfed5627a3")
+session_secret = os.environ.get("SESSION_SECRET")
 if not session_secret:
     logging.error("SESSION_SECRET environment variable is required")
     sys.exit(1)
@@ -49,13 +49,37 @@ app.secret_key = session_secret
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# configure the database - DATABASE_URL is required
-database_url = os.environ.get("postgresql://postgres:ecCQiozFWTZmEEayFNgWHqWGMPYtooZV@postgres.railway.internal:5432/railway")
-if not database_url:
-    logging.error("DATABASE_URL environment variable is required")
-    sys.exit(1)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+# configure the database - DATABASE_URL is provided by Railway automatically
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    logging.info("Using DATABASE_URL from Railway.")
+else:
+    # Fallback for local development only
+    logging.warning("DATABASE_URL not found, using local PostgreSQL fallback.")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/project_management"
+>>>>>>> ddc7368 (Fix DATABASE_URL validation - make it optional for Railway)
+=======
+# configure the database - DATABASE_URL is provided by Railway automatically
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    logging.info("Using DATABASE_URL from Railway.")
+else:
+    # Fallback for local development only
+    logging.warning("DATABASE_URL not found, using local PostgreSQL fallback.")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/project_management"
+=======
+# configure the database - DATABASE_URL is provided by Railway automatically
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    logging.info("Using DATABASE_URL from Railway.")
+else:
+    # Fallback for local development only
+    logging.warning("DATABASE_URL not found, using local PostgreSQL fallback.")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/project_management"
+>>>>>>> ddc7368 (Fix DATABASE_URL validation - make it optional for Railway)
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
