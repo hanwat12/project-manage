@@ -1,13 +1,15 @@
 import os
 import logging
+import sys
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging - INFO level for production, DEBUG for development
+log_level = logging.INFO if os.environ.get("FLASK_ENV") == "production" else logging.DEBUG
+logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Base(DeclarativeBase):
     pass
@@ -15,27 +17,56 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 
+# Validate required environment variables
+def validate_environment():
+    """Validate that all required environment variables are set"""
+    required_vars = ['SESSION_SECRET', 'DATABASE_URL']
+
+    missing_vars = []
+    for var in required_vars:
+        if not os.environ.get(var):
+            missing_vars.append(var)
+
+    if missing_vars:
+        logging.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+        logging.error("Please set all required environment variables before running the application.")
+        sys.exit(1)
+
+    logging.info("All required environment variables are set.")
+
+# Validate environment on startup
+validate_environment()
+
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET") or "dev-secret-key-change-in-production"
+
+# Require SESSION_SECRET - no fallback for security
+session_secret = os.environ.get("SESSION_SECRET")
+if not session_secret:
+    logging.error("SESSION_SECRET environment variable is required")
+    sys.exit(1)
+app.secret_key = session_secret
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# configure the database
+# configure the database - DATABASE_URL is required
 database_url = os.environ.get("DATABASE_URL")
-if database_url:
-    # Using the DATABASE_URL environment variable provided by the hosting service
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    logging.info("Using DATABASE_URL from environment.")
-else:
-    # Fallback to local MySQL for development
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://webuser:StrongPassword123@localhost/project_mgmt"
+if not database_url:
+    logging.error("DATABASE_URL environment variable is required")
+    sys.exit(1)
 
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+# Production settings
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+logging.info("Database configured successfully.")
 
 # initialize extensions
 db.init_app(app)
@@ -54,11 +85,11 @@ def load_user(user_id):
 # Import and register routes
 import routes
 
-# Create tables on startup in production
-if os.environ.get("DATABASE_URL"):
+# Only create tables if explicitly requested (for initial setup)
+if os.environ.get("CREATE_TABLES") == "true":
     with app.app_context():
-        # NOTE: This should point to your models file name, which I've updated to 'models.py' based on the trace.
         import models as models_module
         import models_extensions as models_extensions_module
         db.create_all()
-        print("Database tables created/updated in production.")
+        logging.info("Database tables created/updated.")
+        logging.warning("Remember to remove CREATE_TABLES=true from environment variables after initial setup.")
