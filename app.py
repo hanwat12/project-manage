@@ -41,7 +41,7 @@ validate_environment()
 app = Flask(__name__)
 
 # Require SESSION_SECRET - no fallback for security
-session_secret = os.environ.get("SESSION_SECRET")
+session_secret = os.environ.get("f933657c9443fd20332290886265a2a8a5ff900b3341ad61f583fbdfed5627a3")
 if not session_secret:
     logging.error("SESSION_SECRET environment variable is required")
     sys.exit(1)
@@ -50,7 +50,7 @@ app.secret_key = session_secret
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # configure the database - DATABASE_URL is required
-database_url = os.environ.get("DATABASE_URL")
+database_url = os.environ.get("postgresql://postgres:ecCQiozFWTZmEEayFNgWHqWGMPYtooZV@postgres.railway.internal:5432/railway")
 if not database_url:
     logging.error("DATABASE_URL environment variable is required")
     sys.exit(1)
