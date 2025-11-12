@@ -22,10 +22,16 @@ def validate_environment():
     """Validate that all required environment variables are set"""
     required_vars = ['SESSION_SECRET']
 
+    logging.info(f"Checking environment variables... Available env vars: {list(os.environ.keys())}")
+
     missing_vars = []
     for var in required_vars:
-        if not os.environ.get(var):
+        value = os.environ.get(var)
+        if not value:
             missing_vars.append(var)
+            logging.error(f"Environment variable {var} is missing")
+        else:
+            logging.info(f"Environment variable {var} is set (length: {len(value)})")
 
     if missing_vars:
         logging.error(f"Missing required environment variables: {', '.join(missing_vars)}")
@@ -42,10 +48,13 @@ app = Flask(__name__)
 
 # Require SESSION_SECRET - no fallback for security
 session_secret = os.environ.get("SESSION_SECRET")
-if not session_secret:
-    logging.error("SESSION_SECRET environment variable is required")
+logging.info(f"SESSION_SECRET value check: '{session_secret}' (type: {type(session_secret)}, length: {len(session_secret) if session_secret else 0})")
+if not session_secret or session_secret.strip() == "":
+    logging.error("SESSION_SECRET environment variable is required and cannot be empty")
+    logging.error(f"Current SESSION_SECRET value: '{session_secret}'")
     sys.exit(1)
-app.secret_key = session_secret
+app.secret_key = session_secret.strip()
+logging.info("SESSION_SECRET successfully set")
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
